@@ -43,11 +43,6 @@ pthread_t producer, consumer;
 //main program
 void main(int argc, char *argv[]){
 
-//initialize semaphores
-if(sem_init(&buf_lock,0,1)) printf("initializing buffer semaphore error error");
-if(sem_init(&slot_avail,0,7))printf("initializing buffer semaphore error error");
-if(sem_init(&item_avail,0,0))printf("initializing buffer semaphore error error");
-
 //check if empty and if two entries
 if( (argv[1]== NULL) || argc <3 || argc >3){
 	printf("Correct usage: prog3 infile outfile\n");
@@ -126,7 +121,7 @@ strncpy(tbuff, "tmpbuff", sizeof(tbuff));
 		out = (out+1) % SLOTCOUNT;
 		count--;
 		//old lock release
-		pthread_cond_signal(emtpy_slot);
+		pthread_cond_signal(&empty_slot);
 		pthread_mutex_unlock(&buf_lock);
 		fputs(tbuff, fp1);
 		if ((feof(fp0) !=0) && (count==0)) pthread_exit(NULL);
