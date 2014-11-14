@@ -15,10 +15,10 @@ Written by: Adam Stillman
 #include <ctype.h>
 #include <pthread.h>
 #include <semaphore.h>
-
 //defines
 #define SLOTSIZE 14
 #define SLOTCOUNT 7
+
 //threads to be called
 void *producer_t();
 void *consumer_t();
@@ -33,6 +33,7 @@ pthread_cond_t item_avail = PTHREAD_COND_INITIALIZER;
 FILE *fp0, *fp1;
 //to create threads
 pthread_t producer, consumer;
+
 //main program
 void main(int argc, char *argv[]){
 //check if empty and if two entries
@@ -48,6 +49,7 @@ if( (r1= pthread_create(&consumer, NULL, consumer_t, (void*) 1)) ) printf("threa
 pthread_join(producer, NULL); pthread_join(consumer, NULL);
 fclose(fp0); fclose(fp1);
 }//end of program
+
 //thread calls
 void *producer_t(){
 //needed for strncpy
@@ -72,7 +74,7 @@ char tbuff[SLOTSIZE];
 strncpy(tbuff, "tmpbuff", sizeof(tbuff));	
 while(tbuff != NULL){
 		pthread_mutex_lock(&buf_lock);//lock buffer
-		if(count==0) pthread_cond_wait(&item_avail, &buf_lock);
+		if(count==0) pthread_cond_wait(&item_avail, &buf_lock);//waits for items to be available which is signaled when count=SLOTCOUNT
 		strncpy(tbuff, buffer[out], sizeof(tbuff));
 		out = (out+1) % SLOTCOUNT;
 		count--;

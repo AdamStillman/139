@@ -32,7 +32,6 @@ pthread_cond_t item_avail = PTHREAD_COND_INITIALIZER;
 //files fp0 read and fp1 write
 FILE *fp0, *fp1;
 //to create threads
-
 pthread_t producer, consumer;
 //main program
 void main(int argc, char *argv[]){
@@ -49,6 +48,7 @@ if( (r1= pthread_create(&consumer, NULL, consumer_t, (void*) 1)) ) printf("threa
 pthread_join(producer, NULL); pthread_join(consumer, NULL);
 fclose(fp0); fclose(fp1);
 }//end of program
+
 //thread calls
 void *producer_t(){
 //needed for strncpy
