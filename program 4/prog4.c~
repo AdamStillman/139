@@ -32,6 +32,7 @@ pthread_cond_t item_avail = PTHREAD_COND_INITIALIZER;
 //files fp0 read and fp1 write
 FILE *fp0, *fp1;
 //to create threads
+
 pthread_t producer, consumer;
 //main program
 void main(int argc, char *argv[]){
