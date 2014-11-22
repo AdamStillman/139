@@ -15,10 +15,10 @@ Written by: Adam Stillman
 #include <ctype.h>
 #include <pthread.h>
 #include <semaphore.h>
+
 //defines
 #define SLOTSIZE 14
 #define SLOTCOUNT 7
-
 //threads to be called
 void *producer_t();
 void *consumer_t();
@@ -32,8 +32,8 @@ pthread_cond_t item_avail = PTHREAD_COND_INITIALIZER;
 //files fp0 read and fp1 write
 FILE *fp0, *fp1;
 //to create threads
-pthread_t producer, consumer;
 
+pthread_t producer, consumer;
 //main program
 void main(int argc, char *argv[]){
 //check if empty and if two entries
@@ -49,7 +49,6 @@ if( (r1= pthread_create(&consumer, NULL, consumer_t, (void*) 1)) ) printf("threa
 pthread_join(producer, NULL); pthread_join(consumer, NULL);
 fclose(fp0); fclose(fp1);
 }//end of program
-
 //thread calls
 void *producer_t(){
 //needed for strncpy
@@ -58,11 +57,11 @@ strncpy(tbuff, "tmpbuff", sizeof(tbuff));//populate the char array
 while(tbuff != NULL){
 	if(fgets(tbuff,SLOTSIZE, fp0) != NULL){//while not empty file
 		pthread_mutex_lock(&buf_lock);//lock the buffer
-		if(SLOTCOUNT==count)pthread_cond_wait(&empty_slot, &buf_lock);
+		if(SLOTCOUNT==count)pthread_cond_wait(&empty_slot, &buf_lock);//wait for empty and buff loc top be to be signalled
 		strncpy(buffer[in], tbuff, SLOTSIZE);//captuing from the in stream
 		count++;//next spot
 		in = (in+1)% SLOTCOUNT;//keep it within slot count
-		pthread_cond_signal(&item_avail);
+		pthread_cond_signal(&item_avail);//signal that items available
 		pthread_mutex_unlock(&buf_lock);//release buffer
 		//release of old locks
 	}
@@ -70,15 +69,15 @@ while(tbuff != NULL){
 }pthread_exit(NULL); }
 
 void *consumer_t(){
-char tbuff[SLOTSIZE];
-strncpy(tbuff, "tmpbuff", sizeof(tbuff));	
+char tbuff[SLOTSIZE];//reference for reading from/to file
+strncpy(tbuff, "tmpbuff", sizeof(tbuff));//populate tbuff	
 while(tbuff != NULL){
 		pthread_mutex_lock(&buf_lock);//lock buffer
-		if(count==0) pthread_cond_wait(&item_avail, &buf_lock);//waits for items to be available which is signaled when count=SLOTCOUNT
+		if(count==0) pthread_cond_wait(&item_avail, &buf_lock);//wait for item avail and buff loc to be signaled
 		strncpy(tbuff, buffer[out], sizeof(tbuff));
-		out = (out+1) % SLOTCOUNT;
-		count--;
-		pthread_cond_signal(&empty_slot);
+		out = (out+1) % SLOTCOUNT;//inc count but eep it to buffer size
+		count--;//decrement the count
+		pthread_cond_signal(&empty_slot);//signal that there is an emtpy slot
 		pthread_mutex_unlock(&buf_lock);//lock the buffer
 		fputs(tbuff, fp1);//write to file
 		if ((feof(fp0) !=0) && (count==0)) pthread_exit(NULL);//check end of file
