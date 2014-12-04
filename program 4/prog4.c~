@@ -19,49 +19,77 @@ Written by: Adam Stillman
 //defines
 #define SLOTSIZE 14
 #define SLOTCOUNT 7
-//thread functions
+
 void *producer_t();
 void *consumer_t();
+
 //global variables
 char buffer[SLOTCOUNT][SLOTSIZE];
 int in=0, out=0, count=0;
+
 //mutexs
 pthread_mutex_t buf_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t empty_slot = PTHREAD_COND_INITIALIZER;
 pthread_cond_t item_avail = PTHREAD_COND_INITIALIZER;
-//files to read and write fpo=read fp1 write
+
+//files to read and write
 FILE *fp0, *fp1;
+
 //to create threads
 pthread_t producer, consumer;
+
+
 
 //main program
 void main(int argc, char *argv[]){
 
 //check if empty and if two entries
-if( (argv[1]== NULL) || argc <3 || argc >3){printf("Correct usage: prog3 infile outfile\n"); return;  }
-//open file streams to read from fp0, and the write to fp1
+if( (argv[1]== NULL) || argc <3 || argc >3){
+	printf("Correct usage: prog3 infile outfile\n");
+	return;  }
+//open file to read from
 fp0 = fopen(argv[1],"rb");
+
+//open/create file to write to
 fp1 = fopen(argv[2],"wb");
 
 //create threads in the if statement and if it fails let the user know
 //it it succeeds
 int r0, r1;
-//create threads catch errors
-if( (r0= pthread_create(&producer, NULL, producer_t, (void*) 0)) ) printf("thread creation failed: 1\n"); 
-if( (r1= pthread_create(&consumer, NULL, consumer_t, (void*) 1)) ) printf("thread creation failed: 2\n"); 
+printf("Creating thread producer:\n");
+if( (r0= pthread_create(&producer, NULL, producer_t, (void*) 0)) ){
+	printf("thread creation failed: %d\n", r0); }
+	else{
+		printf("thread producer created with tid: %ld\n", pthread_self()); }
+
+printf("Creating thread consumer:\n");
+if( (r1= pthread_create(&consumer, NULL, consumer_t, (void*) 1)) ){
+	printf("thread creation failed: %d\n", r1);  }
+	else{
+		
+		printf("thread consumer created with tid: %ld\n", pthread_self()); }
+
 ////wait to close the threads
 pthread_join(producer, NULL);
+printf("Closing producer..\n");
 pthread_join(consumer, NULL);
+printf("Closing consumer..\n");
+
 ////close the files
 fclose(fp0);
 fclose(fp1);
+
+printf("end of programm :P\n");
 }
 
 //thread calls
 void *producer_t(){
 //needed for strncpy
 char tbuff[SLOTSIZE];
+
 strncpy(tbuff, "tmpbuff", sizeof(tbuff));
+printf("in the producer thread\n");
+
 
 while(tbuff != NULL){
 	if(fgets(tbuff,SLOTSIZE, fp0) != NULL){//while not empty file
