@@ -19,73 +19,78 @@ Written by: Adam Stillman
 tpyedef struct{
 	long msg_to;
 	long msg_fm;
-	char buffer[BUFSIZ];
+	char buffer[100];
 } MESSAGE;
 
-int mid;
+int mid, status, i;
 key_t key;
 struct msqid_ds buff;
 MESSAGE msg;
-
-FILE *fp0, *fp1, *fp2;
-pthread_t server_t, client1_t, client2_t;
-
-
-void *server();
-void *client1();
-void *client2();
-
+pid_t process[2];
+pid_t pid, wait;
 void main(int argc, char *argv[]){
 
-	//check if empty and if two entries
-	if( (argv[1]== NULL) || argc <4 || argc >4){printf("Correct usage: prog5 infile infile infile\n"); return;  }
+	//grab identifiers of correct que
+	key = ftok(".",'z');
+	if(mid = msgget(key,IPC_CREAT | 0666) <0 ) {printf("error createing que\n"); exit();
+i = 0;
 
-	//create threads in the if statement and if it fails let the user know
-	//it it succeeds
-	int r0, r1, r2;
-	//create threads catch errors
-	if( (r0= pthread_create(&server, NULL, server_t, (void*) 0)) ) printf("thread creation failed: 1\n"); 
-	if( (r1= pthread_create(&client1, NULL, client1_t, (void*) 1)) ) printf("thread creation failed: 2\n"); 
-	if( (r2= pthread_create(&client2, NULL, client2_t, (void*) 1)) ) printf("thread creation failed: 3\n"); 
+do{
+	//waiting for clients
+	if(msgrcv(mid,&msg, sizeof(msg.buffer),1, 0) <0){ printf("couldnt recieve\n"); exit;}
 
-	//open file streams to read from fp0 1 and
-	fp0 = fopen(argv[1],"rb");
-	fp1 = fopen(argv[2],"rb");
-	fp2 = fopen(argv[3],"rb");
+	//make a process for clients
+	pid=fork();
+	process[i] = pid;
+	i++;
 
-	
+	if(pid <-1){printf("Could not fork\n"); exit;}
+	else if(pid==0){
 
-	////wait to close the threads
-	pthread_join(server, NULL);
-	pthread_join(client1, NULL);
-	pthread_join(client2, NULL);
-	////close the files
-	fclose(fp0);
-	fclose(fp1);
-	fclose(fp2);
+		//send msg back to 
+		long client = msg.msg_fm;
+		msg.msg_fm = (long)getppid();
+	        msg.msg_type = client;
+		long childType = (long)getppid();
 
-	
+		if(msgsnd(mid, (struct MESSAGE)&msg, sizeof(msg.buffer),0) ==-1){printf("msgsend error\n"); exit;}
 
-}
+		int l = 0;
+		do{
+			l++;
+			//recieve txt from client
 
-void *server(){}
-void *client1(){
-	char tbuff[SLOTSIZE];
-	strncpy(tbuff, "tmpbuff", sizeof(tbuff));
-	
-	while(tbuff != NULL){
-		strncpy(tbuff, buffer[out], sizeof(tbuff));
-		fputs(tbuff, fp1);
-		if ((feof(fp0) !=0) && (count==0)) pthread_exit(NULL);
+			if(msgrcv(mid,&msg, sizeof(msg.buffer),childType, 0) <0){ printf("couldnt recieve\n"); exit;}
+			if(strlen(msg.buffer) ==0 ) break;
+
+			//to upper
+			int a = 0;
+			for( int a = 0; a<strlen(msg.buffer); a++){
+				msg.buffer[a] = toupper(msg.buffer[a]);
+			}
+	 		msg.msg_type = msg.msg_fm;
+			msg.msg_fm = (long)getppid();
+			
+			//send back
+			if(msgsnd(mid, (struct MESSAGE)&msg, sizeof(msg.buffer),0) ==-1){printf("msgsend error\n"); exit;}
+				
+		}while(l<2);
+		exit(0);
+
 	}
-pthread_exit(NULL);
+} while(x<2);
 
 
-	
+int k	
+//wait for child proccess t0 finish
+for(int k=0; k<2; k++){
+wait = waitpid(process[k], &status,WUNTRSCED | WCONTINUED);
+if(wait ==-1){printf("wait pid errpr\n"); exit;}
+}
+
+msgctl(mid, IPC_RMID, (struct msqid_ds *) 0);
+return(0);
 
 }
-void *client2(){
 
-	
-}
 

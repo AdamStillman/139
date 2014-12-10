@@ -75,11 +75,6 @@ void *client1(){
 	
 	while(tbuff != NULL){
 		strncpy(tbuff, buffer[out], sizeof(tbuff));
-		out = (out+1) % SLOTCOUNT;
-		count--;
-		//old lock release
-		pthread_cond_signal(&empty_slot);
-		pthread_mutex_unlock(&buf_lock);
 		fputs(tbuff, fp1);
 		if ((feof(fp0) !=0) && (count==0)) pthread_exit(NULL);
 	}
